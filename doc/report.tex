@@ -14,13 +14,7 @@
 \usepackage{graphicx}
 \usepackage{enumitem}
 \usepackage{float}
-
-\newcommand{\NN}{\ensuremath{\mathbb{N}}}
-\newcommand{\ZZ}{\ensuremath{\mathbb{Z}}}
-\newcommand{\QQ}{\ensuremath{\mathbb{Q}}}
-\newcommand{\RR}{\ensuremath{\mathbb{R}}}
-\newcommand{\CC}{\ensuremath{\mathbb{C}}}
-\newcommand{\GG}{\ensuremath{\mathcal{G}}}
+\usepackage{helpers}
 
 \newcommand{\Cpp}{\texttt{C++}}
 \newcommand{\Gcc}{\texttt{gcc}}
@@ -46,8 +40,71 @@
     \mainmatter
     \pagestyle{newchap}
 
-    \chapter{Introduction}
+    \chapter{The Problem}
+        \section[problemformulation]{
+            Problem formulation 
+            \footnote{
+                This formulation has some minor differences but it should still 
+                be equivalent with the original one.
+            }
+        }
+        G is undirected and all vertices has degree 3. At each vertex the edges
+        are labeled 0,L, and R (an edge can have different labels at different
+        vertices). So a vertex is a switch. Start positions and switch settings
+        have uniform priors.
 
+        A switch setting is a function $\sigma: V(G)\rightarrow\set{L,R}$, which
+        has the natural interpretation. By a position we mean a pair $(v,e)$,
+        where $v\in V(G)$ and $e\in E(G)$, with the interpretation that the
+        train has passed $v$ and exited through $e$.
 
+        Below we give a DP algorithm for $\cprob{s,O,G}{\sigma}$. We will
+        estimate $\cprob{\sigma}{G,O}$ using MCMC and then $\cprob{s}{G,O}$
+        using:
+        \begin{equation}
+            \cprob{s}{G,O} 
+            = \sum\limits_\sigma
+                \cprob{s,\sigma}{G,O}
+            = \sum\limits_\sigma
+                \cprob{s}{\sigma,G,O}\cprob{\sigma}{G,O}
+            = \sum\limits_\sigma
+                \frac{
+                    \cprob{s,G,O}{\sigma}\cprob{\sigma}{G,O}
+                }{
+                    \cprob{G,O}{\sigma}
+                }
+        \end{equation}
+
+    The probability $p$ is $0.05$. Given $G,\sigma,s\in V(G)$ ($s$ is a stop
+    position), $O\in\set{L,R,0}^T$ (observed switch signals), we can compute 
+    $\cprob{S,G,O}{\sigma}$ using DP and in each step compute the probability
+    of going from some position $s'$ to $s$ in $t$ steps and observing
+    $O_{1:t}=\set{o_i}_{i=1}^t$ when the switch settings are $\sigma$. By doing this
+    for all stop positions $s$ and then summing out the stop position, we
+    obtain $\cprob{O}{G,\sigma}$ in time $\Ordo{N^2T}$, where $N=|V(G)|$.
+
+    The states in out HMM are positions. The transition probabilities are
+    always 1, i.e., given how we enter a vertex it is uniquely determined how
+    we exit (since switches are fixed). Also, when passing a switch the correct
+    direction of the label of the position is emitted with probability $1-p$
+    and any different direction is emitted with probability $p/2$.
+
+    Let $c(s,t)$ be computed as below (we want $c(s,t)$ to be the probability
+    of going from some position $s'$ to $s=(v,e)$ in $t$ steps and observing
+    $O_{1:t}$). Let $f=(u,v)$ and $g=(w,v)$ be the two edges that are incident
+    with $v$ but different from $e$.
+
+    \begin{equation}
+        c(s,t) =
+        \begin{cases}
+            1/N, & t = 0 \\
+            \left[c((u,f),t-1)
+        \end{cases}
+    \end{equation}
+
+    \chapter{Implementation}
+        
+    \chapter{Results \& Discussion}
+        
 
 \end{document}
