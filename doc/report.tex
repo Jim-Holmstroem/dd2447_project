@@ -77,7 +77,7 @@
 
     The probability $p$ is $0.05$. Given $G,\sigma,s\in V(G)$ ($s$ is a stop
     position), $O\in\set{L,R,0}^T$ (observed switch signals), we can compute 
-    $\cprob{S,G,O}{\sigma}$ using DP and in each step compute the probability
+    $\cprob{s,G,O}{\sigma}$ using DP and in each step compute the probability
     of going from some position $s'$ to $s$ in $t$ steps and observing
     $O_{1:t}=\set{o_i}_{i=1}^t$ when the switch settings are $\sigma$. By doing this
     for all stop positions $s$ and then summing out the stop position, we
@@ -98,7 +98,9 @@
         c(s,t) =
         \begin{cases}
             1/N, & t = 0 \\
-            \left[c((u,f),t-1)
+            \left[c((u,f),t-1) + c((w,g),t-1)\right](1-p) & e = 0 \wedge o_t = 0 \\
+            \left[c((u,f),t-1) + c((w,g),t-1)\right]p     & e = 0 \wedge o_t = 0 \\
+            \left[c((u,f),t-1)               \right]p     & e = L \wedge f=\wedge o_t = 0 \\
         \end{cases}
     \end{equation}
 
