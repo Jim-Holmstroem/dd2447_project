@@ -99,8 +99,11 @@
         \begin{cases}
             1/N, & t = 0 \\
             \left[c((u,f),t-1) + c((w,g),t-1)\right](1-p) & e = 0 \wedge o_t = 0 \\
-            \left[c((u,f),t-1) + c((w,g),t-1)\right]p     & e = 0 \wedge o_t = 0 \\
-            \left[c((u,f),t-1)               \right]p     & e = L \wedge f=\wedge o_t = 0 \\
+            \left[c((u,f),t-1) + c((w,g),t-1)\right]p     & e = 0 \wedge o_t \neq 0 \\
+            \left[c((u,f),t-1)               \right](1-p) & e = L \wedge o_t = 0 \wedge f = 0 \\
+            \left[c((u,f),t-1)               \right]p     & e = L \wedge o_t \neq 0 \wedge f = 0 \\
+            \left[c((u,f),t-1)               \right](1-p) & e = R \wedge o_t = 0 \wedge f = 0 \\
+            \left[c((u,f),t-1)               \right]p     & e = R \wedge o_t \neq 0 \wedge f = 0 \\
         \end{cases}
     \end{equation}
 
