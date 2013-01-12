@@ -16,6 +16,7 @@ class queen_generator:
     def __init__(self, N):
         self.N = N
         self.constraints = [] 
+        self.states = []
         def no_self_connection(state):
             """docstring for no_self_connection"""
             return not np.any(np.diag(state))
