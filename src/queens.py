@@ -1,9 +1,73 @@
 import random
 import numpy as np
 import itertools as it
+from sets import Set
 
-class queen_generator:
+class HashComparatorMixin(object):
+    def __lt__(self, other):
+        return self.hash()<other.hash()
+    def __eq__(self, other):
+        return self.hash()==self.hash()
+    def __ne__(self, other):
+        return self.hash()!=self.hash()
+    def __gt__(self, other):
+        return other.hash()<self.hash()
+    def __ge__(self, other):
+        return self.hash()<=other.hash()
+    def __le__(self, other):
+        return other.hash()>=self.hash()
+
+class BinarySearchTree(object):
+    def __init__(self):
+        self.top = None
+
+    class Node(HashComparatorMixin):
+        def __init__(self,state):
+            self.left = None
+            self.right = None
+            self.state = state
+            self.key = None 
+
+        def hash(self):
+            """docstring for hash
+
+                not a very good one by guaranteed to be unique for 
+                don't use __hash__ since it cuts longs to 1 for some reason
+            """
+            if(self.key):
+                return self.key
+            else:
+                self.key = sum(map(lambda a:1<<a,self.state.flatten().nonzero()))
+                return self.key
+
+        def append(self,state):
+            node=BinarySearchTree.Node(state)
+            if(self==node):
+                return False
+            elif(self<node):
+                if(self.left is None):
+                    self.left = BinarySearchTree.Node(node)
+                    return True
+                else:
+                    return self.left.append(node)
+            else: #self>node
+                if(self.right is None):
+                    self.right = BinarySearchTree.Node(node)
+                    return True
+                else:
+                    return self.right.append(node)
+
+    def exists(self,node):
+        """docstring for append"""
+        if(self.top is None):
+            self.top = BinarySearchTree.Node(node)
+        else:
+            self.top.append(node)
+
+class ReducedQueenGenerator(object):
     """docstring for queen generator
+
+    without constraints it produces o solution with rooks instead of queens.
 
     qg = queengenerator(SIZE)
     qg.constraints.append(ADDITIONAL_CONDITION)
@@ -13,51 +77,44 @@ class queen_generator:
     where SIZE is the size of the board and ADDITIONAL_CONDITION is a 
     function c:matrix->bool (for example no connections within pairs or sum of all sub-diagonals must be less then 3)
     """
+
     def __init__(self, N):
         self.N = N
         self.constraints = [] 
         self.states = []
-        def no_self_connection(state):
-            """docstring for no_self_connection"""
-            return not np.any(np.diag(state))
-        self.constraints.append(no_self_connection)
-        
-        # SHOULD BE APPENDED EXTERNALLY LATER
-        #def no_self_junction_connection(state, m):
-        #    """docstring for no_self_junction_connection
-        #        
-        #    make sures that we don't have connections in a junction of size `m`
-        #    that is no ones in the boxes of size m by m along the diagonal
-        #    """
-        #    return False        
-        #self.constraints.append(no_self_junction_connection)
+        self.searchtree = BinarySearchTree()
+
+    @staticmethod
+    def no_self_connection(state):
+        """docstring for no_self_connection"""
+        return not np.any(np.diag(state))
+
+    @staticmethod
+    def queens(state):
+        """docstring for queens"""
+        return
 
     def __iter__(self):
-        for solution in self.solutions(self.empty_board()): #Just passing on the yield
-            yield solution
-
-    def solutions(self, state):
-        """docstring for solutions
-        
-        yields solutions 
-        """
-        for new_state in self.valid_states( state ):
-            print new_state
-            num_queens = np.sum(np.sum(new_state))
+        self.states.append(self.empty_board())
+        while(self.states):
+            state = self.states.pop()
+            num_queens = np.sum(np.sum(state))
             if( num_queens < self.N ):
-                print list(self.solutions(new_state))
-            elif( num_queens == self.N ):
-                yield new_state
+                for valid_state in self.valid_states(state):
+                    if(not self.searchtree.exists(valid_state)):
+                        self.states.append( valid_state )
+            elif( num_queens == self.N ): #GOAL, N queens without conflict
+                yield state
             else:
                 raise Exception(
                     "Too many queens on the field, \
                     something is wrong with the algorithm"
                     )
 
-    def valid_states( self, state ):
+    def valid_states(self,state):
         """docstring for valid_coordinates"""
-        for possible_coordinate in queen_generator.iterate_empty_coordinates( state ):
-            if(state[possible_coordinate]==True):
+        for possible_coordinate in ReducedQueenGenerator.iterate_empty_coordinates( state ):
+            if(state[possible_coordinate]):
                 raise Exception(
                         "Already filled at {coord}, \
                         something went wrong".format(
@@ -66,7 +123,6 @@ class queen_generator:
                     )
             new_state = state.copy()
             new_state[possible_coordinate] = True
-            #print "new_state=\n{state}".format(state=new_state)
             if( all(map(lambda c: c(new_state), self.constraints)) ):
                 yield new_state
 
@@ -89,17 +145,19 @@ class queen_generator:
                 dtype=bool
             )
 
+if __name__ == "__main__":
 
+    #b = ReducedQueenGenerator(5).empty_board()
+    #b[0,1] = 1
+    #b[2,0] = 1
+    #b[3,2] = 1
+    #print b
 
-#b = queen_generator(5).empty_board()
-#b[0,1] = 1
-#b[2,0] = 1
-#b[3,2] = 1
-#print b
-
-#for t in queen_generator.iterate_empty_coordinates(b):
-#    print t,b[t]
-
-for s in queen_generator(3):
-    print ss
+    #for t in queen_generator.iterate_empty_coordinates(b):
+    #    print t,b[t]
+    rq = ReducedQueenGenerator(6)
+    rq.constraints.append(ReducedQueenGenerator.no_self_connection)
+    
+    for s in rq:
+        print s
 
