@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import random
 import numpy as np
 import itertools as it
@@ -42,20 +44,21 @@ class BinarySearchTree(object):
                 return self._key
 
         def append(self,node):
+            """docstring append
+
+            added node and returns True if not already in list else nothing and return False
+            """
             if(self==node):
-                print '=='
                 return False
             elif(self<node):
                 if(self._left is None):
                     self._left = node
-                    print 'left'
                     return True
                 else:
                     return self._left.append(node)
             else: #self>node
                 if(self._right is None):
                     self._right = node
-                    print 'right'
                     return True
                 else:
                     return self._right.append(node)
@@ -73,8 +76,9 @@ class BinarySearchTree(object):
         node = BinarySearchTree.Node(state)
         if(self._top is None):
             self._top = node
+            return False
         else:
-            self._top.append(node)
+            return not self._top.append(node)
 
     def __str__(self):
         return str(self._top)
@@ -97,7 +101,7 @@ class ReducedQueenGenerator(object):
         self.N = N
         self.constraints = [] 
         self.states = []
-        self.searchtree = BinarySearchTree()
+        self._searchtree = BinarySearchTree()
 
     @staticmethod
     def no_self_connection(state):
@@ -112,16 +116,14 @@ class ReducedQueenGenerator(object):
     def __iter__(self):
         start = self.empty_board()
         self.states.append(start)
-        self.searchtree.exists(start)
+        self._searchtree.exists(start)
         while(self.states):
             state = self.states.pop()
             num_queens = np.sum(np.sum(state))
             if( num_queens < self.N ):
-                for valid_state in self.valid_states(state):
-                    if(not self.searchtree.exists(valid_state)):
+                for valid_state in self.valid_states( state ):
+                    if(not self._searchtree.exists(valid_state)):
                         self.states.append( valid_state )
-                    else:
-                        print "computer says no.."
             elif( num_queens == self.N ): #GOAL, N queens without conflict
                 yield state
             else:
@@ -164,8 +166,8 @@ class ReducedQueenGenerator(object):
                 dtype=bool
             )
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     #b = ReducedQueenGenerator(5).empty_board()
     #b[0,1] = 1
     #b[2,0] = 1
@@ -174,11 +176,11 @@ if __name__ == "__main__":
 
     #for t in queen_generator.iterate_empty_coordinates(b):
     #    print t,b[t]
-    rq = ReducedQueenGenerator(3)
+    rq = ReducedQueenGenerator(8)
     rq.constraints.append(ReducedQueenGenerator.no_self_connection)
     
     for s in rq:
         print s
-  
-    print rq.searchtree
+        print 
+
 
