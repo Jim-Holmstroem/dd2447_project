@@ -8,26 +8,26 @@ class HashComparatorMixin(object):
     def __lt__(self, other):
         return self.hash()<other.hash()
     def __eq__(self, other):
-        return self.hash()==self.hash()
+        return self.hash()==other.hash()
     def __ne__(self, other):
-        return self.hash()!=self.hash()
+        return self.hash()!=other.hash()
     def __gt__(self, other):
-        return other.hash()<self.hash()
+        return self.hash()>other.hash()
     def __ge__(self, other):
         return self.hash()<=other.hash()
     def __le__(self, other):
-        return other.hash()>=self.hash()
+        return self.hash()>=other.hash()
 
 class BinarySearchTree(object):
     def __init__(self):
-        self.top = None
+        self._top = None
 
     class Node(HashComparatorMixin):
-        def __init__(self,state):
-            self.left = None
-            self.right = None
-            self.state = state
-            self.key = None 
+        def __init__(self, state):
+            self._left = None
+            self._right = None
+            self._key = None
+            self._state = state
 
         def hash(self):
             """docstring for hash
@@ -35,47 +35,49 @@ class BinarySearchTree(object):
                 not a very good one by guaranteed to be unique for 
                 don't use __hash__ since it cuts longs to 1 for some reason
             """
-            if(self.key):
-                return self.key
+            if(self._key is None):
+                self._key = sum(map(lambda a:1<<a,self._state.flatten().nonzero()[0]))
+                return self._key
             else:
-                self.key = sum(map(lambda a:1<<a,self.state.flatten().nonzero()[0]))
-                print self.key
-                return self.key
+                return self._key
 
-        def append(self,state):
-            node=BinarySearchTree.Node(state)
+        def append(self,node):
             if(self==node):
+                print '=='
                 return False
             elif(self<node):
-                if(self.left is None):
-                    self.left = node
+                if(self._left is None):
+                    self._left = node
+                    print 'left'
                     return True
                 else:
-                    return self.left.append(node)
+                    return self._left.append(node)
             else: #self>node
-                if(self.right is None):
-                    self.right = node
+                if(self._right is None):
+                    self._right = node
+                    print 'right'
                     return True
                 else:
-                    return self.right.append(node)
-        
-        def __str__(self):
-            return "({left},{state},{right})".format(
-                        left=self.left,
-                        right=self.right,
-                        state=self.state
-                    )
+                    return self._right.append(node)
 
+        def __str__(self):
+            return "(\n{left},\n{state}({key}),\n{right}\n)".format(
+                        left=self._left,
+                        right=self._right,
+                        key=self._key,
+                        state=self._state
+                    )
 
     def exists(self,state):
         """docstring for append"""
-        if(self.top is None):
-            self.top = BinarySearchTree.Node(state)
+        node = BinarySearchTree.Node(state)
+        if(self._top is None):
+            self._top = node
         else:
-            self.top.append(state)
+            self._top.append(node)
 
     def __str__(self):
-        return str(self.top)
+        return str(self._top)
 
 class ReducedQueenGenerator(object):
     """docstring for queen generator
@@ -177,5 +179,6 @@ if __name__ == "__main__":
     
     for s in rq:
         print s
-   
+  
     print rq.searchtree
+
