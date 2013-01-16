@@ -1,11 +1,14 @@
 #!/usr/bin/python
 
+import settings
 import random
 import numpy as np
 import itertools as it
 from sets import Set
 import operator as op
 from threading import Thread,Lock
+import argparse
+from os import path
 
 def synchronized(lock):
     """synchronized decorator"""
@@ -111,8 +114,11 @@ class ReducedQueenGenerator(object):
     function c:matrix->bool (for example no connections within pairs or sum of all sub-diagonals must be less then 3)
     """
 
-    def __init__(self, N):
+    def __init__(self, N, symmetric=False,unique=True,rndm=False):
         self.N = N
+        self.symmetric = symmetric
+        self.unique = unique
+        self.rndm = rndm
         self.constraints = [] 
         self.states = []
         self._searchtree = BinarySearchTree()
@@ -130,13 +136,17 @@ class ReducedQueenGenerator(object):
     def __iter__(self):
         start = self.empty_board()
         self.states.append(start)
-        self._searchtree.exists(start)
+        if(self.unique):
+            self._searchtree.exists(start)
         while( self.states ):
             state = self.states.pop()
             num_queens = np.sum(np.sum(state))
             if( num_queens < self.N ):
                 for valid_state in self.valid_states( state ):
-                    if(not self._searchtree.exists( valid_state )):
+                    if(self.unique):
+                        if(not self._searchtree.exists( valid_state )):
+                            self.states.append( valid_state )
+                    else:
                         self.states.append( valid_state )
             elif( num_queens == self.N ): #GOAL, N queens without conflict
                 yield state
@@ -159,6 +169,19 @@ class ReducedQueenGenerator(object):
                     )
             new_state = state.copy()
             new_state[possible_coordinate] = True
+            if(self.symmetric):
+                new_state[tuple(reversed(possible_coordinate))] = True
+                #NOTE if symmetric the corresponding pair cannot be already set (unless self connection)
+                if(reduce(
+                        max,
+                        map(lambda t:
+                            new_state.sum(axis=t).max(),
+                            range(2)
+                        )
+                    ) > 1
+                    ): 
+                    #no double set on the symmetric (actually only collisions between top and bottom side is needed)
+                    continue #a bit ugly
             if( all(map(lambda c: c(new_state), self.constraints)) ):
                 yield new_state
 
@@ -167,13 +190,14 @@ class ReducedQueenGenerator(object):
         """docstring for iterate_empty_coordinates
 
         iterates tuple (x,y) for all coordintes which are free
+        and in the symmetric case only one of the paired coordinates will be returned and it will not in general be symmetrically empty
         """
         coords = map(lambda axis:
                     np.nonzero(state.any(axis=axis)==False)[0], #==False is the easiest way todo elementwise `not`
                     reversed(range(2))
                 )
    
-        return it.product(*coords)
+        return it.product(*coords) #cannot return symmetric coordinates since an external check after the product is needed
 
     def empty_board(self):
         return np.zeros(
@@ -181,21 +205,21 @@ class ReducedQueenGenerator(object):
                 dtype=bool
             )
 
-
 if __name__ == "__main__":
-    #b = ReducedQueenGenerator(5).empty_board()
-    #b[0,1] = 1
-    #b[2,0] = 1
-    #b[3,2] = 1
-    #print b
+    parser = argparse.ArgumentParser(description='Produces a list of valid solutions for the reduced N queens problem.',epilog='Report bugs to <jimho@kth.se>')
+    parser.add_argument('-N',help='The number of queens')
+    args = parser.parse_args()
 
-    #for t in queen_generator.iterate_empty_coordinates(b):
-    #    print t,b[t]
-    rq = ReducedQueenGenerator(8)
+    N = int(args.N)
+
+    rq = ReducedQueenGenerator(N,True,False,True)
     rq.constraints.append(ReducedQueenGenerator.no_self_connection)
     
-    for s in rq:
-        print s
-        print 
+    filename = path.join(settings.data_location,"reduced_queens_symmetric{N}.dat".format(N=N))
+    with open(filename,'w') as f:
+        for s in rq:
+            print s
+            np.savetxt(f,s,'%x')
+            f.write(',\n')
 
 
