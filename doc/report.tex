@@ -108,7 +108,34 @@
     \end{equation}
 
     \chapter{Implementation}
-        
+
+        *The ignoring of G. email Jens bout it
+
+        *MCMC
+            *basic basic MCMC abstract theory
+            *MCMC used for estimating E[f(\sigma)] without going through all
+            \sigma which is intractable. 
+            *why is E[f(\sigma)] = sum f(\sigma)p(\sigma) = sum_sampled
+            f(\sigma)
+            *how it relates to our problem
+                *\bar{sigma} graph with the weights Q(\bar{sigma},\bar{sigma}')
+                which 2^N states and (2^N)^2 connections
+                note about being to vast to search through (dim-devil)
+            *different algorithms for implementing MCMC
+            *compare the different ones shortly(what they assume or
+            need for example)
+            *explain why we chose it
+            *how we chose Q what are the requirements for it
+                *hamming distance measure and picking close ones (as we should
+                accordingly)
+                *why hamming? a more natural distance for switch settings than
+                say euclidean or such.
+            *abstractly relate to the graph (what is this type of graph
+            called?)
+        *describe the marginalization over states in p(sigma|o) and why we need
+        to do it
+
+
     \chapter{Results \& Discussion}
         
 
