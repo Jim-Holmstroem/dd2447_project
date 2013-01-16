@@ -83,7 +83,7 @@
     for all stop positions $s$ and then summing out the stop position, we
     obtain $\cprob{O}{G,\sigma}$ in time $\Ordo{N^2T}$, where $N=|V(G)|$.
 
-    The states in out HMM are positions. The transition probabilities are
+    The states in our HMM are positions. The transition probabilities are
     always 1, i.e., given how we enter a vertex it is uniquely determined how
     we exit (since switches are fixed). Also, when passing a switch the correct
     direction of the label of the position is emitted with probability $1-p$
@@ -100,10 +100,10 @@
             1/N, & t = 0 \\
             \left[c((u,f),t-1) + c((w,g),t-1)\right](1-p) & e = 0 \wedge o_t = 0 \\
             \left[c((u,f),t-1) + c((w,g),t-1)\right]p     & e = 0 \wedge o_t \neq 0 \\
-            \left[c((u,f),t-1)               \right](1-p) & e = L \wedge o_t = 0 \wedge f = 0 \\
-            \left[c((u,f),t-1)               \right]p     & e = L \wedge o_t \neq 0 \wedge f = 0 \\
-            \left[c((u,f),t-1)               \right](1-p) & e = R \wedge o_t = 0 \wedge f = 0 \\
-            \left[c((u,f),t-1)               \right]p     & e = R \wedge o_t \neq 0 \wedge f = 0 \\
+            \left[c((u,f),t-1)               \right](1-p) & e = L \wedge o_t = L \wedge f = 0 \\
+            \left[c((u,f),t-1)               \right]p     & e = L \wedge o_t \neq L \wedge f = 0 \\
+            \left[c((u,f),t-1)               \right](1-p) & e = R \wedge o_t = R \wedge f = 0 \\
+            \left[c((u,f),t-1)               \right]p     & e = R \wedge o_t \neq R \wedge f = 0 \\
         \end{cases}
     \end{equation}
 
