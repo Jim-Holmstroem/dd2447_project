@@ -160,7 +160,7 @@ class random_graph_t {
          */
         
         std::ostream & svg(std::ostream & stream) const {
-            
+            return stream;
         }
         
         bool validate() const {
@@ -394,14 +394,14 @@ const size_t random_graph_t<VertexCount, AllowLoops>::connections_per_vertex(3);
 int main(int argc, const char **argv) {
     srand(time(NULL));
     
-    static const size_t vertex_count = 4096;
-    static const bool allow_loops = true;
+    static const size_t vertex_count = 12;
+    static const bool allow_loops = false;
         
     /* Too large graphs won't fit nice on the stack, thus use the heap */
     random_graph_t<vertex_count, allow_loops> *graph = new random_graph_t<vertex_count, allow_loops>();
     
     std::cerr << "Validate: " << std::boolalpha << graph->validate() << std::endl;
     
-    //std::cerr << "Array dump: " << std::endl << *graph << std::endl;
+    std::cerr << "Array dump: " << std::endl << *graph << std::endl;
 }
 
