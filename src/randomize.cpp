@@ -394,7 +394,7 @@ const size_t random_graph_t<VertexCount, AllowLoops>::connections_per_vertex(3);
 int main(int argc, const char **argv) {
     srand(time(NULL));
     
-    static const size_t vertex_count = 12;
+    static const size_t vertex_count = 4;
     static const bool allow_loops = false;
         
     /* Too large graphs won't fit nice on the stack, thus use the heap */
