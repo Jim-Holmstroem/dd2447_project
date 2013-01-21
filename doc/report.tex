@@ -24,8 +24,7 @@
 \subtitle{Statistical Methods in Applied Computer Science, DD2447\\ Final Project}
 \foreigntitle{}
 \author{
-    Jim Holmstr\"{o}m \href{mailto:jimho@kth.se}{jimho@kth.se}\\
-    Johan Gardell \href{mailto:jgar@kth.se}{jgar@kth.se}
+    Jim Holmstr\"{o}m \href{mailto:jimho@kth.se}{jimho@kth.se}
 }
 \date{\today}
 \blurb{Teacher: Jens Lagergren} 
@@ -57,31 +56,34 @@
         has the natural interpretation. By a position we mean a pair $(v,e)$,
         where $v\in V(G)$ and $e\in E(G)$, with the interpretation that the
         train has passed $v$ and exited through $e$.
+        
+        (We leave out G and a instead have G implicit for all distributions and expressions.)
 
-        Below we give a DP algorithm for $\cprob{s,O,G}{\sigma}$. We will
-        estimate $\cprob{\sigma}{G,O}$ using MCMC and then $\cprob{s}{G,O}$
+        Below we give a DP algorithm for $\cprob{s,O}{\sigma}$. We will
+        estimate $\cprob{\sigma}{O}$ using MCMC and then $\cprob{s}{O}$
         using:
         \begin{equation}
-            \cprob{s}{G,O} 
+            \label{eq:marginalization}
+            \cprob{s}{O} 
             = \sum\limits_\sigma
-                \cprob{s,\sigma}{G,O}
+                \cprob{s,\sigma}{O}
             = \sum\limits_\sigma
-                \cprob{s}{\sigma,G,O}\cprob{\sigma}{G,O}
+                \cprob{s}{\sigma,O}\cprob{\sigma}{O}
             = \sum\limits_\sigma
                 \frac{
-                    \cprob{s,G,O}{\sigma}\cprob{\sigma}{G,O}
+                    \cprob{s,O}{\sigma}\cprob{\sigma}{O}
                 }{
-                    \cprob{G,O}{\sigma}
+                    \cprob{O}{\sigma}
                 }
         \end{equation}
 
     The probability $p$ is $0.05$. Given $G,\sigma,s\in V(G)$ ($s$ is a stop
     position), $O\in\set{L,R,0}^T$ (observed switch signals), we can compute 
-    $\cprob{s,G,O}{\sigma}$ using DP and in each step compute the probability
+    $\cprob{s,O}{\sigma}$ using DP and in each step compute the probability
     of going from some position $s'$ to $s$ in $t$ steps and observing
     $O_{1:t}=\set{o_i}_{i=1}^t$ when the switch settings are $\sigma$. By doing this
     for all stop positions $s$ and then summing out the stop position, we
-    obtain $\cprob{O}{G,\sigma}$ in time $\Ordo{N^2T}$, where $N=|V(G)|$.
+    obtain $\cprob{O}{\sigma}$ in time $\Ordo{N^2T}$, where $N=|V(G)|$.
 
     The states in our HMM are positions. The transition probabilities are
     always 1, i.e., given how we enter a vertex it is uniquely determined how
@@ -108,18 +110,36 @@
     \end{equation}
 
     \chapter{Implementation}
+        The underlying model for this problem is a HMM
+        *HMM
+            *First step
+                The first marginalization in \eqref{eq:marginalization} is 
+                to get fixed $\sigma$ and thereby fixed transition 
+                probabilities inside the $\sum\limits\sigma$ to make the 
+                sub-problem tractable, the downside to this is that we get 
+                $|\set{L,R}^N| = \Ordo{2^N}$ summations which is intractable. 
+                This will later be approximated to overcome the intractability with a 
+                Markov chain Monte Carlo method. 
+            *Second step
+                Factor out the $\left.\sigma \middle\vert O\right.$ distribution to set it up for MCMC.
+            *Third step
+                
+                
+                
 
-        *The ignoring of G. email Jens bout it
 
+            
+            
+            
         *MCMC
             *basic basic MCMC abstract theory
-            *MCMC used for estimating E[f(\sigma)] without going through all
-            \sigma which is intractable. 
-            *why is E[f(\sigma)] = sum f(\sigma)p(\sigma) = sum_sampled
-            f(\sigma)
+            *MCMC used for estimating $E{f(\sigma)}$ without the intractible process of going through all
+            $\sigma$.
+            *why is $E{f(\sigma)}$ = 
+            sum $f(\sigma)\prob{\sigma}$ = $\sum_{sampled} f(\sigma)/N$
             *how it relates to our problem
-                *\bar{sigma} graph with the weights Q(\bar{sigma},\bar{sigma}')
-                which 2^N states and (2^N)^2 connections
+                *$\bar{sigma}$ graph with the weights $Q(\bar{\sigma},\bar{\sigma}')$
+                which have $2^N$ states and $(2^N)^2$ connections
                 note about being to vast to search through (dim-devil)
             *different algorithms for implementing MCMC
             *compare the different ones shortly(what they assume or
@@ -130,13 +150,23 @@
                 accordingly)
                 *why hamming? a more natural distance for switch settings than
                 say euclidean or such.
+                *step size ($\delta$) = 1 (tuning parameter)
             *abstractly relate to the graph (what is this type of graph
             called?)
-        *describe the marginalization over states in p(sigma|o) and why we need
+        *describe the marginalization over states in $\cprob{sigma}{o}$ and why we need
         to do it
 
 
     \chapter{Results \& Discussion}
-        
+        *MCMC
+            *convergence analysis
+                *trace plot
+                *autocorrelation?
+                *test different distributions for step size.
+                    *step-size effect
+                        *to small step size => autocorrelation high (slow convergence)
+                        *to big step size => low acceptence rate
+
+
 
 \end{document}
