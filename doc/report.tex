@@ -157,7 +157,7 @@
         \section{MCMC}
             \subsection{Background}
                 MCMC is used when we have a expectation for a function $f$ of a r.v. X with a too large state space 
-                and thus we need to sample and instead get an approximate expectation.
+                and thus we need to sample and instead get an approximate expectation. This is only used when it is hard to do a direct sample.
                 
                 Rewrite the expression for expectation of some function $f$
                 \begin{equation}
@@ -171,16 +171,16 @@
                     = \sum\limits_x f(x)\prob{X=x} 
                     \rightarrow \frac{1}{N} \sum\limits_{x\sim X} f(x)
                 \end{equation}
-                since the probility for $X=x$ is the frequency of occurance of it 
+                since the probility for $X=x$ is the occurances of the expression being true 
                 divided by the total number of possible states for $X$.
-                
+
                 The underlying method for sampling with MCMC is simple, by 
                 constructing a Markov chain with the wanted distribution as 
                 equilibrium distribution and instead sample from 
-                the randomly walked states after an initial burn-in sequence to reach an 
-                equilibrium.\footnote{Equilibrium does not mean stationary state in general.}
-           
-           \subsection{MCMC for our problem} 
+                the randomly walked states after an initial burn-in sequence.
+                \footnote{Equilibrium does not in general a stationary state.}
+
+           \subsection{MCMC in our problem} 
                 For this problem the \eqref{eq:marginalization} can be thought of as
                 \begin{equation}
                     \sum\limits_\sigma
@@ -199,18 +199,33 @@
                 \end{equation}
                 MCMC is here used for estimating $E{f(\sigma)}$ without the intractible 
                 process of going through all $\sigma$.
-                *why is $E{f(\sigma)}$ = 
-                sum $f(\sigma)\prob{\sigma}$ = $\sum_{sampled} f(\sigma)/N$
-                *how it relates to our problem
-                    *$\bar{sigma}$ graph with the weights $Q(\bar{\sigma},\bar{\sigma}')$
-                    which have $2^N$ states and $(2^N)^2$ connections
-                    note about being to vast to search through (dim-devil)
-            \subsection{Choice of MCMC Algorithm}
-                *different algorithms for implementing MCMC
-                *compare the different ones shortly(what they assume or
-                need for example)
-                *explain why we chose it
-            \subsection{Metropolis-Hastings algorithm}
+               
+                The nodes for the underlying Markov chain is all possible 
+                $\sigma$ ($\Ordo (2^N)$) 
+                with transition probabilities between them being
+                $\cprob{\sigma'}{\sigma}$ which is defined in the algorithm 
+                used for MCMC.
+
+            \subsection{Choice of MCMC algorithm}
+                The two main choses of MCMC algorithm is Metropolis-Hastings (MH) 
+                or Gibbs sampler (special case of (MH).
+                The Gibbs sampler has no tweaking parameters which is good but it 
+                requires to have an explicit expression for the conditional 
+                probability for updating one element in $\sigma$ given partly 
+                old and new $\sigma$. For this reason we choose the (MH).
+                
+            \subsection{Metropolis-Hastings algorithm (MH)}
+                Firstly we need an (arbitrary) proposal density $Q(x'\middle\vert x)$
+                which we choose to be uniform for all $\sigma$ 
+                with a hamming distance $\delta$ of $1$ from the previous $\sigma$.
+                The usage of hamming distance as dissimilarity measure comes natural 
+                from the switch positions since we have discrete $\sigma$ elements 
+                and the dissimilarity does not depend on how much each switch is set 
+                differently
+                \footnote{In this case it is binary, but in the more general case with 
+                multiple switch settings this will also be true.} 
+                but only how many.
+
                 *how we chose Q what are the requirements for it
                     *hamming distance measure and picking close ones (as we should
                     accordingly)
