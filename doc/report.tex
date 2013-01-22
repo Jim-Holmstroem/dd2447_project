@@ -150,10 +150,26 @@
                 the denominator basically works as normalization constant for $\bar{\alpha_t}$.
 
         \section{HMM}
-            \subsection{Relating $c\left(s,t\right)$} 
-                $c$ vs $c_{\sigma}$
-            \subsection{}
-            
+            \subsection{Relating $c\left(s,t\right)$ to $\bar{\alpha_t}$} 
+                From the DP definition of $\alpha_t$ we have
+                \begin{equation}
+                    \bar{\alpha_{t}} 
+                    = (\widetilde{A}(\bar{\alpha_{t-1}}))\odot \hat{B}(o_t)
+                    , \bar{\alpha_0}=\hat{\pi}=\frac{1}{N}
+                \end{equation}
+                where $\widetilde{A}$ is the transition matrix and $\hat{B}$ is the 
+                observation matrix here represented as a function of $o_i$.
+                Pattern matching this with $c(s,t)$ we can see that the first part corresponds to
+                $\widetilde{A}(\bar{\alpha_t})$ and the second part to 
+                $\bar{B}(o_t)$ with elementwise multiplication $\odot$.
+
+            \subsection{Fixation of $\sigma$ in $c$}
+                Since $\sigma$ is within the operator $\sum\limits_\sigma$ we can define a
+                $c_\sigma(s,t)$ which uses the information of what the current 
+                switch setting is instead of as $c$ do use the a priori for $\sigma$.
+                $c_\sigma(s,t)$ will be $\Ordo(T)$ since the path is 
+                deterministic and of length $T$. The $c_\sigma$ will correspond to backtrack from the stop state $s$ and se how many observations fits the taken path.
+
         \section{MCMC}
             \subsection{Background}
                 MCMC is used when we have a expectation for a function $f$ of a r.v. X with a too large state space 
@@ -218,7 +234,7 @@
                 Firstly we need an (arbitrary) proposal density $Q\left(x'\middle\vert x\right)$
                 which we choose to be uniform for all $\sigma'$ 
                 with a hamming distance $\delta\left(\cdot,\cdot\right)$ 
-                of $1$ from the previous $\sigma$.
+                of $1$ from the revious $\sigma$.
                 The usage of hamming distance as dissimilarity measure comes natural 
                 from the switch positions since we have discrete $\sigma$ elements 
                 and the dissimilarity does not depend on how much each switch is set 
@@ -262,13 +278,12 @@
                             \cprob{O}{\sigma}
                         }
                 \end{equation}
+                except for the lack of end state. 
+                TODO is this true?
 
             \subsection{Marginalization over states}
-                 
-                *describe the marginalization over states in $\cprob{sigma}{o}$ and why we need
-                to do it
+                Since we do not have an expression for $\cprob{sigma}{O}$ TODO is this true when we have state?
                 *a priori for end states
-
 
     \chapter{Results \& Discussion}
         *MCMC
