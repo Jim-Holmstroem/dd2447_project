@@ -56,7 +56,7 @@
         
         (We leave out G and a instead have G implicit for all distributions and expressions.)
 
-        Below we give a DP algorithm for $\cprob{s,O}{\sigma}$. We will
+        Below we give a dynamic programming (DP)j algorithm for $\cprob{s,O}{\sigma}$. We will
         estimate $\cprob{\sigma}{O}$ using MCMC and then $\cprob{s}{O}$
         using:
         \begin{equation}
@@ -76,7 +76,7 @@
 
     The probability $p$ is $0.05$. Given $G,\sigma,s\in V(G)$ ($s$ is a stop
     position), $O\in\set{L,R,0}^T$ (observed switch signals), we can compute 
-    $\cprob{s,O}{\sigma}$ using dynamic programming (DP) and in each step compute the probability
+    $\cprob{s,O}{\sigma}$ using DP and in each step compute the probability
     of going from some position $s'$ to $s$ in $t$ steps and observing
     $O_{1:t}=\set{o_i}_{i=1}^t$ when the switch settings are $\sigma$. By doing this
     for all stop positions $s$ and then summing out the stop position, we
@@ -108,7 +108,10 @@
 
     \chapter{Methodology}
         \section{Derivation}
-        The underlying model for this problem is a Hidden Markov Model (HMM) but to calculate $\cprob{s}{O}$ we need to reform it to the form of a HMM which we do in \eqref{eq:marginalization}. The different steps are explained and motivated below.
+        The underlying model for this problem is a Hidden Markov Model (HMM) 
+        but to calculate $\cprob{s}{O}$ we need to change it to the form of 
+        a HMM which we do in \eqref{eq:marginalization}. 
+        The different steps are explained and motivated below.
             \subsection{
                 Marginalization 
                 $\cprob{s}{O}
@@ -151,11 +154,11 @@
 
         \section{HMM}
             \subsection{Relating $c\left(s,t\right)$ to $\bar{\alpha_t}$} 
-                From the DP definition of $\alpha_t$ we have
+                From the DP definition of $\hat{\alpha_t}$ we have
                 \begin{equation}
-                    \bar{\alpha_{t}} 
-                    = (\widetilde{A}(\bar{\alpha_{t-1}}))\odot \hat{B}(o_t)
-                    , \bar{\alpha_0}=\hat{\pi}=\frac{1}{N}
+                    \bar{\alpha}_{t} 
+                    = (\widetilde{A}({\bar{\alpha}_{t-1}}))\odot \hat{B}(o_t)
+                    , \bar{\alpha}_0=\hat{\pi}=\frac{1}{N}
                 \end{equation}
                 where $\widetilde{A}$ is the transition matrix and $\hat{B}$ is the 
                 observation matrix here represented as a function of $o_i$.
@@ -224,7 +227,7 @@
 
             \subsection{Choice of MCMC algorithm}
                 The two main choses of MCMC algorithm is Metropolis-Hastings (MH) 
-                or Gibbs sampler (special case of (MH)).
+                or Gibbs sampler (special case of MH).
                 The Gibbs sampler has no tweaking parameters which is good but it 
                 requires to have an explicit expression for the conditional 
                 probability for updating one element in $\sigma$ given partly 
@@ -291,16 +294,20 @@
                 $\sigma$ to get the a priori distribution given $\sigma$.
 
     \chapter{Results \& Discussion}
+        Convergence plot for the MCMC implementation.
 
-        *MCMC
-            *convergence analysis
-                *trace plot
-                *autocorrelation?
-                *test different distributions for step size.
-                    *step-size effect
-                        *to small step size => autocorrelation high (slow convergence)
-                        *to big step size => low acceptence rate
+        Hand checked that the samples still are deviates.
+    
+        
 
+        %*MCMC
+        %    *convergence analysis
+        %        *trace plot
+        %        *autocorrelation?
+        %        *test different distributions for step size.
+        %            *step-size effect
+        %                *to small step size => autocorrelation high (slow convergence)
+        %                *to big step size => low acceptence rate
 
 
 \end{document}
