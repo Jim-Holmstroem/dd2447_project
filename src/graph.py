@@ -4,10 +4,14 @@ import operator
 import random
 import sys
 import numpy as np
+import pylab as pl
+import math
+import multiprocessing as mp
+
 
 observation_missrate = 0.05
-number_of_samples = 1000
-sampling_burn_in = 500
+number_of_samples = 2000
+sampling_burn_in = 200
 sampling_interval = 5
 
 # Utility function for printing sigmas
@@ -101,23 +105,15 @@ class Observation(object):
         if edge not in self.graph.matrix[v_from][v_to]:
             print "v_from:", v_from, "v_to:", v_to, "edge:", edge
             raise IndexError()
-        
-        #connections = self.adjacent_connections( v_from )
+
         connections = self.graph.connections_to(v_from)
-        
-        #print "connections:", connections
-        
         
         other_connections = [ (index, tp) for (index, connection) in connections
                               for tp in connection if (index, tp) != (v_to, backward_edge) ]
         
-        #print v_from, "->", v_to, "along", edge, "observation", o[t]
-        
         
         probability = ( p, (1 - p) ) [self.o[t] == edge]
-        
-        #print "v_from:", v_from, "e:", e, "other_conns:", other_connections, "backward_edge:", backward_edge
-        
+
         if edge == Graph.O:
             return probability * sum([ self.c(v_prev, (v_from, edge_prev), t - 1) 
                                         for (v_prev, edge_prev) in other_connections ])
@@ -125,9 +121,27 @@ class Observation(object):
             f = [ (v, edge_prev) for (v, edge_prev) in other_connections if self.graph.invert_connection_direction(v, v_from, edge_prev) == Graph.O ][0]
             
             return probability * self.c(f[0], (v_from, f[1]), t - 1)
-        #print "c(", v_from, e, t, p, "):", val
+
+    def d(self, v_from, e, sigma, p = observation_missrate):
+        edge = e[1]
+        probability = 1.0
         
-        #return val
+        for o in reversed(self.o):
+            if edge == Graph.O:
+                # Choose either L or R using sigma
+                backward_edge = [Graph.L, Graph.R][sigma_get_bit(sigma, v_from)]
+            else:
+                # Choose 0
+                backward_edge = Graph.O
+
+            probability *= [p / 2, 1 - p][o == edge]
+            
+            v_to = self.graph.target(v_from, backward_edge)
+            edge = self.graph.invert_connection_direction(v_from, v_to, backward_edge)
+            v_from = v_to
+        
+        return probability
+
 
 def generate_random_observation_sequence(graph, length):
     # end state
@@ -173,16 +187,69 @@ def state_observation_probability_given_sigma(observation, v_from, e, sigma):
     
     #return p
     
-    return observation.c(v_from, e, len(observation.o) - 1)
+    #return observation.c(v_from, e, len(observation.o) - 1)
+    return observation.d(v_from, e, sigma)
 
 # sample measurement for p(sigma|O,G)
 def proportional_sigma_probability(sigma, observation, v_from, e):
     return state_observation_probability_given_sigma(observation, v_from, e, sigma)
 
+def random_sigma(graph):
+    return random.getrandbits(len(graph.matrix))
+
+def sigma_flip_random_bit(sigma):
+    return sigma ^ (1 << random.randint(0, len(observation.graph.matrix) - 1))
+
+def sigma_get_bit(sigma, index):
+    return bool(sigma & (1 << index))
+
+# raw metropolis_hastings takes a state
+def raw_metropolis_hastings(observation, v_from, e, number_of_samples):
+    sigmas = np.empty(number_of_samples, dtype = object)
+    probabilities = np.empty(number_of_samples, dtype = float)
+    
+    # Randomize start sigma
+    sigma = random_sigma(observation.graph)
+    
+    sigma_prob = proportional_sigma_probability(sigma, observation, v_from, e)
+    
+    for i in range(number_of_samples):
+        while True:
+            sigma_p = sigma_flip_random_bit(sigma)
+            
+            sigma_prob_p = proportional_sigma_probability(sigma_p, observation, v_from, e)
+
+            alpha = sigma_prob_p / sigma_prob
+            
+            probabilities[i] = sigma_prob_p
+
+            if alpha >= 1 or random.random() <= alpha:
+                sigma, sigma_prob = sigma_p, sigma_prob_p
+                
+                sigmas[i] = sigma
+                probabilities[i] = sigma_prob
+                
+                break
+
+    return sigmas, probabilities
+
+# mcmc sampling of p(sigma|O,G)
+def sampler(f, observation, number_of_samples, sampling_burn_in, sampling_interval):
+    concat_sigmas = []
+    concat_probabilities = []
+    
+    for (v_from, e) in StateSpace(observation.graph):
+        sigmas, probabilities = f(observation, v_from, e, (number_of_samples + sampling_burn_in) * sampling_interval / (len(observation.graph.matrix) * 3))
+        concat_sigmas.extend(sigmas[sampling_burn_in * sampling_interval / (len(observation.graph.matrix) * 3)::sampling_interval])
+        concat_probabilities.extend(probabilities[sampling_burn_in * sampling_interval/ (len(observation.graph.matrix) * 3)::sampling_interval])
+    
+    return concat_sigmas, concat_probabilities
+
 # mcmc sampling of p(sigma|O,G)
 def metropolis_hastings(observation, number_of_samples, sampling_burn_in, sampling_interval):
     iterations = (number_of_samples + sampling_burn_in) * sampling_interval / (len(observation.graph.matrix) * 3)
-    sigmas = [ ] #[ 0 for i in range(number_of_samples) ]
+    sigmas = [ ]
+    probabilities = [ ]
     
     burn_in = sampling_burn_in / (len(observation.graph.matrix) * 3)
 
@@ -200,6 +267,8 @@ def metropolis_hastings(observation, number_of_samples, sampling_burn_in, sampli
             sigma_prob_p = proportional_sigma_probability(sigma_p, observation, v_from, e)
 
             alpha = sigma_prob_p / sigma_prob
+            
+            probabilities.append(sigma_prob_p)
 
             if alpha > 1 or random.random() <= alpha:
                 sigma, sigma_prob = sigma_p, sigma_prob_p
@@ -208,8 +277,8 @@ def metropolis_hastings(observation, number_of_samples, sampling_burn_in, sampli
 
                 if i % sampling_interval == 0 and i / sampling_interval > burn_in:
                     sigmas.append(sigma_p)
-                    
-    return sigmas
+
+    return ( sigmas, probabilities )
 
 # p(O|sigma,G)
 def observation_probability(observation, sigma):
@@ -218,22 +287,51 @@ def observation_probability(observation, sigma):
     """
     
     return sum(
+        [observation.d(v_from, e, sigma) 
+            for (v_from, e) in StateSpace(observation.graph) ]
+        )
+    
+    '''return sum(
         [observation.c(v_from, e, len(observation.o) - 1) 
             for v_from in range(len(graph.matrix)) 
             for e in observation.graph.adjacent_connections(v_from)]
-        )
+        )'''
 
 def valid_state(graph, v_from, e):
     return observation.graph.matrix[v_from][e[0]] != 0
 
-def state_probability(v_from, e, observation):
-    sigmas = metropolis_hastings(observation, number_of_samples, sampling_burn_in, sampling_interval)
+def state_probability(f, v_from, e, observation):
+    sigmas, _ = sampler(f, observation, number_of_samples, sampling_burn_in, sampling_interval)
     
     return 1.0 / number_of_samples * sum([ 
         state_observation_probability_given_sigma(observation, v_from, e, sigma) / 
         observation_probability(observation,sigma) for sigma in sigmas 
     ])
 
+def trace_plot(f, observation, filename):
+    length = (number_of_samples + sampling_burn_in) * sampling_interval / (len(observation.graph.matrix) * 3)
+    
+    for (v_from, e) in StateSpace(observation.graph):
+        
+        p = np.zeros(length, dtype = float)
+        
+        for i in range(50):
+            _, probabilities = f(observation, v_from, e, length)
+            
+            for j in range(length):
+                p[j] += probabilities[j]
+        
+        pl.semilogy([ prob / length for prob in p ])
+        #break
+        
+    pl.xlabel('interval')
+    pl.ylabel('log(probability) + k')
+    pl.title('Convergence plot')
+    pl.grid(True)
+    pl.savefig(filename, bbox_inches = 0)
+    
+    pl.show()
+    
 if __name__ == "__main__":
     import sys
     
@@ -246,7 +344,7 @@ if __name__ == "__main__":
     
     #random.seed(3453)
     
-    '''matrix = (
+    matrix = (
         ( ( '0', 'R' ), 0, 0, 0, 0, 0, 0, 0, 0, 0, ( 'L' ), 0 ),    # 0
         ( 0, 0, 0, ( 'R' ), 0, 0, 0, 0, 0, ( 'L' ), 0, ( '0' ) ),   # 1
         ( 0, 0, 0, 0, 0, ( 'L' ), ( '0' ), 0, 0, 0, 0, ( 'R' ) ),   # 2
@@ -259,15 +357,15 @@ if __name__ == "__main__":
         ( 0, ( 'R' ), 0, 0, 0, 0, 0, 0, ( 'L', '0' ), 0, 0, 0 ),    # 9
         ( ( 'R' ), 0, 0, 0, 0, 0, ( '0' ), 0, ( 'L' ), 0, 0, 0 ),   # 10
         ( 0, ( 'R' ), ( '0' ), 0, ( 'L' ), 0, 0, 0, 0, 0, 0, 0 ),   # 11
-        )'''
-    matrix = (
+        )
+    '''matrix = (
         ( 0, ( 'R', '0' ), ( 'L', ), 0 ),
         ( ( 'L', '0' ), 0, 0, ( 'R', ) ),
         ( ( '0', ), 0, 0, ( 'R', 'L' ) ),
         ( 0, ( 'L', ), ( '0', 'R' ), 0 ),
-    )
+    )'''
     
-    observation_sequence_length = 6
+    observation_sequence_length = 14
     
     #o = [ Graph.R, Graph.L ]
     #o = [ random.choice([Graph.L, Graph.R, Graph.O]) for i in range(len(matrix)) ]
@@ -294,7 +392,7 @@ if __name__ == "__main__":
     
     #print "state_probability:", state_probability(0, (1, 'L'), graph, o)
     
-    total_prob = 0.0
+    #total_prob = 0.0
     
     '''for v_from in range(len(graph.matrix)):
         
@@ -303,16 +401,28 @@ if __name__ == "__main__":
             #print "state_probability: v_from:", v_from, "e:", e, "p:", p
             total_prob += p'''
     
-    for (v_from, e) in StateSpace(observation.graph):
-        p = state_probability(v_from, e, observation)
-        total_prob += p
+    probabilities = []
+    states = [ (v_from, e) for (v_from, e) in StateSpace(observation.graph) ]
+    
+    for v_from, e in states:
+        p = state_probability(raw_metropolis_hastings, v_from, e, observation)
+        #total_prob += p
+        
+        probabilities.append(p)
+        
         print "state_probability(", v_from, e, ") =", p
 
+    max_index = probabilities.index(max(probabilities))
     
+    print "state:", states[max_index], "with probability:", probabilities[max_index]
 
-    print "total_prob:", total_prob
+    #print "total_prob:", total_prob
     
-    print "state_probability:", state_probability(v_from, e, observation)
+    print "state_probability:", state_probability(raw_metropolis_hastings, v_from, e, observation)
+    
+    print "total_prob:", sum(probabilities)
+    
+    trace_plot(raw_metropolis_hastings, observation, '../plot/state_' + str(states[max_index][0]) + "_" + str(states[max_index][1][0]) + "_" + str(states[max_index][1][1]) + "_probability_" + str(probabilities[max_index]) + "_total_prob_" + str(sum(probabilities)) + "_observation_length_" + str(len(observation.o)) + ".pdf")
     
     # test
     
