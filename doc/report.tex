@@ -79,7 +79,7 @@
 
     The probability $p$ is $0.05$. Given $G,\sigma,s\in V(G)$ ($s$ is a stop
     position), $O\in\set{L,R,0}^T$ (observed switch signals), we can compute 
-    $\cprob{s,O}{\sigma}$ using DP and in each step compute the probability
+    $\cprob{s,O}{\sigma}$ using dynamic programming (DP) and in each step compute the probability
     of going from some position $s'$ to $s$ in $t$ steps and observing
     $O_{1:t}=\set{o_i}_{i=1}^t$ when the switch settings are $\sigma$. By doing this
     for all stop positions $s$ and then summing out the stop position, we
@@ -109,29 +109,48 @@
         \end{cases}
     \end{equation}
 
-    \chapter{Implementation}
-        The underlying model for this problem is a HMM
-        *HMM
-            *First step
+    \chapter{Methodology}
+        \section{Derivation}
+        The underlying model for this problem is a HMM but to calculate $\cprob{s}{O}$ we need to reform it to the form of a HMM.
+            \subsection{
+                Marginalization 
+                $\cprob{s}{O}
+                =
+                \sum\limits_\sigma \cprob{s,\sigma}{O}
+            $}
                 The first marginalization in \eqref{eq:marginalization} is 
                 to get fixed $\sigma$ and thereby fixed transition 
                 probabilities inside the $\sum\limits\sigma$ to make the 
                 sub-problem tractable, the downside to this is that we get 
                 $|\set{L,R}^N| = \Ordo{2^N}$ summations which is intractable. 
                 This will later be approximated to overcome the intractability with a 
-                Markov chain Monte Carlo method. 
-            *Second step
-                Factor out the $\left.\sigma \middle\vert O\right.$ distribution to set it up for MCMC.
-            *Third step
-                
-                
-                
+                Markov chain Monte Carlo (MCMC) method. 
 
+            \subsection{
+                Conditional probability 
+                $\cprob{s,\sigma}{O}
+                =
+                \cprob{s}{\sigma,O}\cprob{\sigma}{O}
+            $}
+                From the definition of conditional probability we can factor out
+                the $\left.\sigma \middle\vert O\right.$ distribution and by this setting it up for the MCMC later on.
 
+            \subsection{
+                Conditional probabilty 
+                $\cprob{s}{\sigma,O}
+                =
+                \frac{
+                    \cprob{s,O}{\sigma}
+                }{
+                    \cprob{O}{\sigma}}
+            $}
+                To get it $\cprob{s,O}{\sigma}$ to match the form of $\bar{\alpha_t}=\cprob{O_{1:T},\bar{s}}{model}$ with the fw and we can still calculate $\cprob{O}{\sigma}$ by marginalization on $s$.
+
+        \section{HMM}
             
+                $c$ vs $c_{\sigma}$
             
-            
-        *MCMC
+        \section{MCMC}
             *basic basic MCMC abstract theory
             *MCMC used for estimating $E{f(\sigma)}$ without the intractible process of going through all
             $\sigma$.
