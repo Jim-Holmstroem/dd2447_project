@@ -16,9 +16,6 @@
 \usepackage{float}
 \usepackage{helpers}
 
-\newcommand{\Cpp}{\texttt{C++}}
-\newcommand{\Gcc}{\texttt{gcc}}
-
 \title{Implementation of ``The Train'' problem}
 
 \subtitle{Statistical Methods in Applied Computer Science, DD2447\\ Final Project}
@@ -111,16 +108,16 @@
 
     \chapter{Methodology}
         \section{Derivation}
-        The underlying model for this problem is a HMM but to calculate $\cprob{s}{O}$ we need to reform it to the form of a HMM.
+        The underlying model for this problem is a Hidden Markov Model (HMM) but to calculate $\cprob{s}{O}$ we need to reform it to the form of a HMM which we do in \eqref{eq:marginalization}. The different steps are explained and motivated below.
             \subsection{
                 Marginalization 
                 $\cprob{s}{O}
                 =
                 \sum\limits_\sigma \cprob{s,\sigma}{O}
             $}
-                The first marginalization in \eqref{eq:marginalization} is 
-                to get fixed $\sigma$ and thereby fixed transition 
-                probabilities inside the $\sum\limits\sigma$ to make the 
+                The first marginalization is 
+                to fixate $\sigma$ and thereby fixate the transition 
+                probabilities for the HMM inside the $\sum\limits\sigma$ to make the 
                 sub-problem tractable, the downside to this is that we get 
                 $|\set{L,R}^N| = \Ordo{2^N}$ summations which is intractable. 
                 This will later be approximated to overcome the intractability with a 
@@ -133,7 +130,8 @@
                 \cprob{s}{\sigma,O}\cprob{\sigma}{O}
             $}
                 From the definition of conditional probability we can factor out
-                the $\left.\sigma \middle\vert O\right.$ distribution and by this setting it up for the MCMC later on.
+                the $\left.\sigma \middle\vert O\right.$ distribution and by this 
+                setting it up for the MCMC later on.
 
             \subsection{
                 Conditional probabilty 
@@ -144,39 +142,156 @@
                 }{
                     \cprob{O}{\sigma}}
             $}
-                To get it $\cprob{s,O}{\sigma}$ to match the form of $\bar{\alpha_t}=\cprob{O_{1:T},\bar{s}}{model}$ with the fw and we can still calculate $\cprob{O}{\sigma}$ by marginalization on $s$.
+                To get $\cprob{s}{\sigma,O}$ to match the form of 
+                $\bar{\alpha_t}=\cprob{O_{1:t},\bar{s}}{\text{model}}$ used in 
+                the forward algorithm for HMM's we use the 
+                definition of conditional probabilty.
+                Note that we can calculate $\cprob{O}{\sigma}$ by marginalization over $s$,
+                the denominator basically works as normalization constant for $\bar{\alpha_t}$.
 
         \section{HMM}
-            
-                $c$ vs $c_{\sigma}$
-            
-        \section{MCMC}
-            *basic basic MCMC abstract theory
-            *MCMC used for estimating $E{f(\sigma)}$ without the intractible process of going through all
-            $\sigma$.
-            *why is $E{f(\sigma)}$ = 
-            sum $f(\sigma)\prob{\sigma}$ = $\sum_{sampled} f(\sigma)/N$
-            *how it relates to our problem
-                *$\bar{sigma}$ graph with the weights $Q(\bar{\sigma},\bar{\sigma}')$
-                which have $2^N$ states and $(2^N)^2$ connections
-                note about being to vast to search through (dim-devil)
-            *different algorithms for implementing MCMC
-            *compare the different ones shortly(what they assume or
-            need for example)
-            *explain why we chose it
-            *how we chose Q what are the requirements for it
-                *hamming distance measure and picking close ones (as we should
-                accordingly)
-                *why hamming? a more natural distance for switch settings than
-                say euclidean or such.
-                *step size ($\delta$) = 1 (tuning parameter)
-            *abstractly relate to the graph (what is this type of graph
-            called?)
-        *describe the marginalization over states in $\cprob{sigma}{o}$ and why we need
-        to do it
+            \subsection{Relating $c\left(s,t\right)$ to $\bar{\alpha_t}$} 
+                From the DP definition of $\alpha_t$ we have
+                \begin{equation}
+                    \bar{\alpha_{t}} 
+                    = (\widetilde{A}(\bar{\alpha_{t-1}}))\odot \hat{B}(o_t)
+                    , \bar{\alpha_0}=\hat{\pi}=\frac{1}{N}
+                \end{equation}
+                where $\widetilde{A}$ is the transition matrix and $\hat{B}$ is the 
+                observation matrix here represented as a function of $o_i$.
+                Pattern matching this with $c(s,t)$ we can see that the first part corresponds to
+                $\widetilde{A}(\bar{\alpha_t})$ and the second part to 
+                $\bar{B}(o_t)$ with elementwise multiplication $\odot$.
 
+            \subsection{Fixation of $\sigma$ in $c$}
+                Since $\sigma$ is within the operator $\sum\limits_\sigma$ we can define a
+                $c_\sigma(s,t)$ which uses the information of what the current 
+                switch setting is instead of as $c$ do use the a priori for $\sigma$.
+                $c_\sigma(s,t)$ will be $\Ordo(T)$ since the path is 
+                deterministic and of length $T$. The $c_\sigma$ will correspond to backtrack from the stop state $s$ and se how many observations fits the taken path.
+
+        \section{MCMC}
+            \subsection{Background}
+                MCMC is used when we have a expectation for a function $f$ of a r.v. X with a too large state space 
+                and thus we need to sample and instead get an approximate expectation. This is only used when it is hard to do a direct sample.
+                
+                Rewrite the expression for expectation of some function $f$
+                \begin{equation}
+                    E_X f(X) 
+                    = \sum\limits_x f(x)\prob{X=x} 
+                    \approx \frac{1}{N} \sum\limits_{x\sim X} f(x)
+                \end{equation}
+                where $N$ is the number of samples drawn from $X$-distribution in ``$x\sim X$'' we know that
+                \begin{equation}
+                    \lim_{N\rightarrow\infty} E_X f(X) 
+                    = \sum\limits_x f(x)\prob{X=x} 
+                    \rightarrow \frac{1}{N} \sum\limits_{x\sim X} f(x)
+                \end{equation}
+                since the probility for $X=x$ is the occurances of the expression being true 
+                divided by the total number of possible states for $X$.
+
+                The underlying method for sampling with MCMC is simple, by 
+                constructing a Markov chain with the wanted distribution as 
+                equilibrium distribution and instead sample from 
+                the randomly walked states after an initial burn-in sequence.
+                \footnote{Equilibrium does not in general a stationary state.}
+
+           \subsection{MCMC in our problem} 
+                For this problem the \eqref{eq:marginalization} can be thought of as
+                \begin{equation}
+                    \sum\limits_\sigma
+                    \frac{
+                        \cprob{s,O}{\sigma}\cprob{\sigma}{O}
+                    }{
+                        \cprob{O}{\sigma}
+                    }
+                    = E_{\cprob{\sigma}{O}}\left[{
+                        \frac{
+                            \cprob{s,O}{\sigma}
+                        }{
+                            \cprob{O}{\sigma}
+                        }
+                    }\right]
+                \end{equation}
+                MCMC is here used for estimating $E{f(\sigma)}$ without the intractible 
+                process of going through all $\sigma$.
+               
+                The nodes for the underlying Markov chain is all possible 
+                $\sigma$ ($\Ordo (2^N)$) 
+                with transition probabilities between them being
+                $\cprob{\sigma'}{\sigma}$ which is defined in the algorithm 
+                used for MCMC.
+
+            \subsection{Choice of MCMC algorithm}
+                The two main choses of MCMC algorithm is Metropolis-Hastings (MH) 
+                or Gibbs sampler (special case of (MH)).
+                The Gibbs sampler has no tweaking parameters which is good but it 
+                requires to have an explicit expression for the conditional 
+                probability for updating one element in $\sigma$ given partly 
+                old and new $\sigma$. For this reason we choose the (MH).
+                
+            \subsection{Metropolis-Hastings algorithm (MH)}
+                Firstly we need an (arbitrary) proposal density $Q\left(x'\middle\vert x\right)$
+                which we choose to be uniform for all $\sigma'$ 
+                with a hamming distance $\delta\left(\cdot,\cdot\right)$ 
+                of $1$ from the revious $\sigma$.
+                The usage of hamming distance as dissimilarity measure comes natural 
+                from the switch positions nature, this since we have 
+                discrete $\sigma$ elements 
+                and the dissimilarity does not depend on how much each switch is set 
+                differently
+                \footnote{In this case it is binary, but in the more general case with 
+                multiple switch settings this will also be true.} 
+                but only on how many.
+                Also instead of only propose a neighbourhood of $1$ we could instead have a
+                distribution for $\delta$ but since the maximum distance in this graph 
+                with the metric $\delta$ is $N$ the entire space is small and using a 
+                larger distance by flipping $k$ bits ($\delta=k$) whould only result in a jump 
+                comparable to the space size which would be much more like 
+                just randomizing the entire $\sigma$. The random walk has enough freedom to 
+                walk freely around without restrictions with a $\delta=1$.
+                There is one requirement for $Q$, it needs to be symmetric.
+                \footnote{$Q\left(\sigma' \middle\vert \sigma\right)
+                =Q\left(\sigma \middle\vert \sigma'\right) $}
+                Our proposal density fulfills this since the metric $\sigma$ is symmetric 
+                as well as the distribution being uniform.
+                Relating back to the original markov chain all jump probabilities with 
+                $\delta(\sigma',\sigma)>1$ are $0$, but this fact will not restrict the random
+                walk to converge to the wanted equilibrium distribution.
+                \footnote{At least in theory, but the convergence could be really slow.}
+         
+                Note that we do
+                \begin{equation}
+                    \cprob{\sigma}{O} = \frac{\cprob{O}{\sigma}\prob{\sigma}}{\prob{O}}
+                \end{equation}
+                and with a uniform a priori ($1/{2^N}$) distribution for $\sigma$ we get 
+                a few unwanted things that cancel out together with having a probability 
+                that is easier to calculate
+                \begin{equation}
+                    a = \frac{
+                            \cprob{O}{\sigma'}\prob{\sigma'}/\prob{O}
+                        }{
+                            \cprob{O}{\sigma}\prob{\sigma}/\prob{O}
+                        }
+                      = \frac{
+                            \cprob{O}{\sigma'}
+                        }{
+                            \cprob{O}{\sigma}
+                        }
+                \end{equation}
+                except for the lack of end state. 
+
+            \subsection{Marginalization over states}
+                Since we do not have an expression for $\cprob{\sigma}{O}$ (lacking end state) we marginalize it
+                \begin{equation}
+                    \cprob{O}{\sigma} = \sum\limits_s \cprob{O}{\sigma,s}\cprob{s}{\sigma}
+                \end{equation}
+                To get the a priori for the end states we simply walk the graph with the 
+                uniform a priori distribution of start states $T$ steps with a given 
+                $\sigma$ to get the a priori distribution given $\sigma$.
 
     \chapter{Results \& Discussion}
+
         *MCMC
             *convergence analysis
                 *trace plot
