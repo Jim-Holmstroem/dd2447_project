@@ -358,32 +358,33 @@ std::ostream & operator<<(std::ostream & stream, const typename random_graph_t<V
 
 template<size_t VertexCount, bool AllowLoops>
 std::ostream & operator<<(std::ostream & stream, const random_graph_t<VertexCount, AllowLoops> & graph) {
-    stream << '(' << std::endl;
+    stream << '{' << std::endl;
     
     for(size_t row = 0; row < random_graph_t<VertexCount, AllowLoops>::size; ++row) {
-        stream << '(';
+        stream << '{';
 
         for(size_t col = 0; col < random_graph_t<VertexCount, AllowLoops>::size; ++col) {
             if (graph[row][col].empty())
-                stream << " 0";
+                stream << "\"\"";
             else {
-                stream << " (";
+                stream << " \"";
                 
                 typename random_graph_t<VertexCount, AllowLoops>::connection_t::const_iterator it;
                 for(it = graph[row][col].begin(); it != graph[row][col].end() - 1; ++it) {
-                    stream << " '" << *it << "',";
+                    //stream << " '" << *it << "',";
+                    stream << *it;
                 }
                 
-                stream << " '" << *it << "' )";
+                stream << *it << "\"";
             }
             
             stream << (col != random_graph_t<VertexCount, AllowLoops>::size - 1 ? ',' : ' ');
         }
 
-        stream << ')' << (row != random_graph_t<VertexCount, AllowLoops>::size ? ',' : ' ') << std::endl;
+        stream << '}' << (row != random_graph_t<VertexCount, AllowLoops>::size ? ',' : ' ') << std::endl;
     }
     
-    stream << ')';
+    stream << '}';
     
     return stream;
 }
@@ -394,7 +395,7 @@ const size_t random_graph_t<VertexCount, AllowLoops>::connections_per_vertex(3);
 int main(int argc, const char **argv) {
     srand(time(NULL));
     
-    static const size_t vertex_count = 4;
+    static const size_t vertex_count = 12;
     static const bool allow_loops = false;
         
     /* Too large graphs won't fit nice on the stack, thus use the heap */
