@@ -16,9 +16,6 @@
 \usepackage{float}
 \usepackage{helpers}
 
-\newcommand{\Cpp}{\texttt{C++}}
-\newcommand{\Gcc}{\texttt{gcc}}
-
 \title{Implementation of ``The Train'' problem}
 
 \subtitle{Statistical Methods in Applied Computer Science, DD2447\\ Final Project}
@@ -111,16 +108,16 @@
 
     \chapter{Methodology}
         \section{Derivation}
-        The underlying model for this problem is a HMM but to calculate $\cprob{s}{O}$ we need to reform it to the form of a HMM.
+        The underlying model for this problem is a Hidden Markov Model (HMM) but to calculate $\cprob{s}{O}$ we need to reform it to the form of a HMM which we do in \eqref{eq:marginalization}. The different steps are explained and motivated below.
             \subsection{
                 Marginalization 
                 $\cprob{s}{O}
                 =
                 \sum\limits_\sigma \cprob{s,\sigma}{O}
             $}
-                The first marginalization in \eqref{eq:marginalization} is 
-                to get fixed $\sigma$ and thereby fixed transition 
-                probabilities inside the $\sum\limits\sigma$ to make the 
+                The first marginalization is 
+                to fixate $\sigma$ and thereby fixate the transition 
+                probabilities for the HMM inside the $\sum\limits\sigma$ to make the 
                 sub-problem tractable, the downside to this is that we get 
                 $|\set{L,R}^N| = \Ordo{2^N}$ summations which is intractable. 
                 This will later be approximated to overcome the intractability with a 
@@ -133,7 +130,8 @@
                 \cprob{s}{\sigma,O}\cprob{\sigma}{O}
             $}
                 From the definition of conditional probability we can factor out
-                the $\left.\sigma \middle\vert O\right.$ distribution and by this setting it up for the MCMC later on.
+                the $\left.\sigma \middle\vert O\right.$ distribution and by this 
+                setting it up for the MCMC later on.
 
             \subsection{
                 Conditional probabilty 
@@ -144,36 +142,85 @@
                 }{
                     \cprob{O}{\sigma}}
             $}
-                To get it $\cprob{s,O}{\sigma}$ to match the form of $\bar{\alpha_t}=\cprob{O_{1:T},\bar{s}}{model}$ with the fw and we can still calculate $\cprob{O}{\sigma}$ by marginalization on $s$.
+                To get $\cprob{s}{\sigma,O}$ to match the form of 
+                $\bar{\alpha_t}=\cprob{O_{1:t},\bar{s}}{\text{model}}$ used in 
+                the forward algorithm for HMM's we use the 
+                definition of conditional probabilty.
+                Note that we can calculate $\cprob{O}{\sigma}$ by marginalization over $s$,
+                the denominator basically works as normalization constant for $\bar{\alpha_t}$.
 
         \section{HMM}
-            
+            \subsection{} 
                 $c$ vs $c_{\sigma}$
+            \subsection{}
             
         \section{MCMC}
-            *basic basic MCMC abstract theory
-            *MCMC used for estimating $E{f(\sigma)}$ without the intractible process of going through all
-            $\sigma$.
-            *why is $E{f(\sigma)}$ = 
-            sum $f(\sigma)\prob{\sigma}$ = $\sum_{sampled} f(\sigma)/N$
-            *how it relates to our problem
-                *$\bar{sigma}$ graph with the weights $Q(\bar{\sigma},\bar{\sigma}')$
-                which have $2^N$ states and $(2^N)^2$ connections
-                note about being to vast to search through (dim-devil)
-            *different algorithms for implementing MCMC
-            *compare the different ones shortly(what they assume or
-            need for example)
-            *explain why we chose it
-            *how we chose Q what are the requirements for it
-                *hamming distance measure and picking close ones (as we should
-                accordingly)
-                *why hamming? a more natural distance for switch settings than
-                say euclidean or such.
-                *step size ($\delta$) = 1 (tuning parameter)
-            *abstractly relate to the graph (what is this type of graph
-            called?)
-        *describe the marginalization over states in $\cprob{sigma}{o}$ and why we need
-        to do it
+            \subsection{Background}
+                MCMC is used when we have a expectation for a function $f$ of a r.v. X with a too large state space 
+                and thus we need to sample and instead get an approximate expectation.
+                
+                Rewrite the expression for expectation of some function $f$
+                \begin{equation}
+                    E_X f(X) 
+                    = \sum\limits_x f(x)\prob{X=x} 
+                    \approx \frac{1}{N} \sum\limits_{x\sim X} f(x)
+                \end{equation}
+                where $N$ is the number of samples drawn from $X$-distribution in ``$x\sim X$'' we know that
+                \begin{equation}
+                    \lim_{N\rightarrow\infty} E_X f(X) 
+                    = \sum\limits_x f(x)\prob{X=x} 
+                    \rightarrow \frac{1}{N} \sum\limits_{x\sim X} f(x)
+                \end{equation}
+                since the probility for $X=x$ is the frequency of occurance of it 
+                divided by the total number of possible states for $X$.
+                
+                The underlying method for sampling with MCMC is simple, by 
+                constructing a Markov chain with the wanted distribution as 
+                equilibrium distribution and instead sample from 
+                the randomly walked states after an initial burn-in sequence to reach an 
+                equilibrium.\footnote{Equilibrium does not mean stationary state in general.}
+           
+           \subsection{MCMC for our problem} 
+                For this problem the \eqref{eq:marginalization} can be thought of as
+                \begin{equation}
+                    \sum\limits_\sigma
+                    \frac{
+                        \cprob{s,O}{\sigma}\cprob{\sigma}{O}
+                    }{
+                        \cprob{O}{\sigma}
+                    }
+                    = E_{\cprob{\sigma}{O}}\left[{
+                        \frac{
+                            \cprob{s,O}{\sigma}
+                        }{
+                            \cprob{O}{\sigma}
+                        }
+                    }\right]
+                \end{equation}
+                MCMC is here used for estimating $E{f(\sigma)}$ without the intractible 
+                process of going through all $\sigma$.
+                *why is $E{f(\sigma)}$ = 
+                sum $f(\sigma)\prob{\sigma}$ = $\sum_{sampled} f(\sigma)/N$
+                *how it relates to our problem
+                    *$\bar{sigma}$ graph with the weights $Q(\bar{\sigma},\bar{\sigma}')$
+                    which have $2^N$ states and $(2^N)^2$ connections
+                    note about being to vast to search through (dim-devil)
+            \subsection{Choice of MCMC Algorithm}
+                *different algorithms for implementing MCMC
+                *compare the different ones shortly(what they assume or
+                need for example)
+                *explain why we chose it
+            \subsection{Metropolis-Hastings algorithm}
+                *how we chose Q what are the requirements for it
+                    *hamming distance measure and picking close ones (as we should
+                    accordingly)
+                    *why hamming? a more natural distance for switch settings than
+                    say euclidean or such.
+                    *step size ($\delta$) = 1 (tuning parameter)
+                *abstractly relate to the graph (what is this type of graph
+                called?)
+            *describe the marginalization over states in $\cprob{sigma}{o}$ and why we need
+            to do it
 
 
     \chapter{Results \& Discussion}
