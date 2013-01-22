@@ -150,7 +150,7 @@
                 the denominator basically works as normalization constant for $\bar{\alpha_t}$.
 
         \section{HMM}
-            \subsection{} 
+            \subsection{Relating $c\left(s,t\right)$} 
                 $c$ vs $c_{\sigma}$
             \subsection{}
             
@@ -217,7 +217,7 @@
             \subsection{Metropolis-Hastings algorithm (MH)}
                 Firstly we need an (arbitrary) proposal density $Q\left(x'\middle\vert x\right)$
                 which we choose to be uniform for all $\sigma'$ 
-                with a hamming distance $\delta\left(\cdot,\cdot\right)$ from $\sigma$ 
+                with a hamming distance $\delta\left(\cdot,\cdot\right)$ 
                 of $1$ from the previous $\sigma$.
                 The usage of hamming distance as dissimilarity measure comes natural 
                 from the switch positions since we have discrete $\sigma$ elements 
@@ -242,10 +242,29 @@
                 $\delta(\sigma',\sigma)>1$ are $0$, but this fact will not restrict the random
                 walk to converge to the wanted equilibrium distribution.
                 \footnote{At least in theory, but the convergence could be really slow.}
-           
-            \subsection{Marginalization over states}
-                TODO
+         
+                Note that we do
+                \begin{equation}
+                    \cprob{\sigma}{O} = \frac{\cprob{O}{\sigma}\prob{\sigma}}{\prob{O}}
+                \end{equation}
+                and with a uniform a priori ($1/{2^N}$) distribution for $\sigma$ we get 
+                a few unwanted things that cancel out together with having a probability 
+                that is easier to calculate
+                \begin{equation}
+                    a = \frac{
+                            \cprob{O}{\sigma'}\prob{\sigma'}/\prob{O}
+                        }{
+                            \cprob{O}{\sigma}\prob{\sigma}/\prob{O}
+                        }
+                      = \frac{
+                            \cprob{O}{\sigma'}
+                        }{
+                            \cprob{O}{\sigma}
+                        }
+                \end{equation}
 
+            \subsection{Marginalization over states}
+                 
                 *describe the marginalization over states in $\cprob{sigma}{o}$ and why we need
                 to do it
                 *a priori for end states
