@@ -215,27 +215,40 @@
                 old and new $\sigma$. For this reason we choose the (MH).
                 
             \subsection{Metropolis-Hastings algorithm (MH)}
-                Firstly we need an (arbitrary) proposal density $Q(x'\middle\vert x)$
-                which we choose to be uniform for all $\sigma$ 
-                with a hamming distance $\delta$ of $1$ from the previous $\sigma$.
+                Firstly we need an (arbitrary) proposal density $Q\left(x'\middle\vert x\right)$
+                which we choose to be uniform for all $\sigma'$ 
+                with a hamming distance $\delta\left(\cdot,\cdot\right)$ from $\sigma$ 
+                of $1$ from the previous $\sigma$.
                 The usage of hamming distance as dissimilarity measure comes natural 
                 from the switch positions since we have discrete $\sigma$ elements 
                 and the dissimilarity does not depend on how much each switch is set 
                 differently
                 \footnote{In this case it is binary, but in the more general case with 
                 multiple switch settings this will also be true.} 
-                but only how many.
+                but only on how many.
+                Also instead of only propose a neighbourhood of $1$ we could instead have a
+                distribution for $\delta$ but since the maximum distance in this graph 
+                with the metric $\delta$ is $N$ the entire space is small and using a 
+                larger distance by flipping $k$ bits ($\delta=k$) whould only result in a jump 
+                comparable to the space size which would be much more like 
+                just randomizing the entire $\sigma$. The random walk has enough freedom to 
+                walk freely around without restrictions with a $\delta=1$.
+                There is one requirement for $Q$, it needs to be symmetric.
+                \footnote{$Q\left(\sigma' \middle\vert \sigma\right)
+                =Q\left(\sigma \middle\vert \sigma'\right) $}
+                Our proposal density fulfills this since the metric $\sigma$ is symmetric 
+                as well as the distribution being uniform.
+                Relating back to the original markov chain all jump probabilities with 
+                $\delta(\sigma',\sigma)>1$ are $0$, but this fact will not restrict the random
+                walk to converge to the wanted equilibrium distribution.
+                \footnote{At least in theory, but the convergence could be really slow.}
+           
+            \subsection{Marginalization over states}
+                TODO
 
-                *how we chose Q what are the requirements for it
-                    *hamming distance measure and picking close ones (as we should
-                    accordingly)
-                    *why hamming? a more natural distance for switch settings than
-                    say euclidean or such.
-                    *step size ($\delta$) = 1 (tuning parameter)
-                *abstractly relate to the graph (what is this type of graph
-                called?)
-            *describe the marginalization over states in $\cprob{sigma}{o}$ and why we need
-            to do it
+                *describe the marginalization over states in $\cprob{sigma}{o}$ and why we need
+                to do it
+                *a priori for end states
 
 
     \chapter{Results \& Discussion}
