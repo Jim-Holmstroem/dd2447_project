@@ -224,7 +224,7 @@
 
             \subsection{Choice of MCMC algorithm}
                 The two main choses of MCMC algorithm is Metropolis-Hastings (MH) 
-                or Gibbs sampler (special case of (MH).
+                or Gibbs sampler (special case of (MH)).
                 The Gibbs sampler has no tweaking parameters which is good but it 
                 requires to have an explicit expression for the conditional 
                 probability for updating one element in $\sigma$ given partly 
@@ -236,7 +236,8 @@
                 with a hamming distance $\delta\left(\cdot,\cdot\right)$ 
                 of $1$ from the revious $\sigma$.
                 The usage of hamming distance as dissimilarity measure comes natural 
-                from the switch positions since we have discrete $\sigma$ elements 
+                from the switch positions nature, this since we have 
+                discrete $\sigma$ elements 
                 and the dissimilarity does not depend on how much each switch is set 
                 differently
                 \footnote{In this case it is binary, but in the more general case with 
@@ -279,13 +280,18 @@
                         }
                 \end{equation}
                 except for the lack of end state. 
-                TODO is this true?
 
             \subsection{Marginalization over states}
-                Since we do not have an expression for $\cprob{sigma}{O}$ TODO is this true when we have state?
-                *a priori for end states
+                Since we do not have an expression for $\cprob{\sigma}{O}$ (lacking end state) we marginalize it
+                \begin{equation}
+                    \cprob{O}{\sigma} = \sum\limits_s \cprob{O}{\sigma,s}\cprob{s}{\sigma}
+                \end{equation}
+                To get the a priori for the end states we simply walk the graph with the 
+                uniform a priori distribution of start states $T$ steps with a given 
+                $\sigma$ to get the a priori distribution given $\sigma$.
 
     \chapter{Results \& Discussion}
+
         *MCMC
             *convergence analysis
                 *trace plot
