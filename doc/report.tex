@@ -294,11 +294,56 @@
                 $\sigma$ to get the a priori distribution given $\sigma$.
 
     \chapter{Results \& Discussion}
+        The algorithms was mainly tested on $|G|=16,T=128$ with an ground truth observation 
+        randomized from a simulated run of the train with randomized 
+        switch settings and start state, where nor of them was used in the algorithm.
+
         Convergence plot for the MCMC implementation.
 
         Hand checked that the samples still are deviates.
-    
-        
+
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{../plot/50iteration_topstates_16nodes.pdf}
+  \caption{$\sigma$ probability over the number iterations, convergeplot for the top states.}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=1.0\textwidth]{../plot/50iteration_bottomstates_16nodes.pdf}
+  \caption{$\sigma$ probability over the number iterations, convergeplot for the bottom states.}
+\end{figure}
+
+\begin{center}
+\begin{table}
+\begin{center}
+\begin{tabular}{ l | r }
+    state & probability \\ \hline 
+    <v: 10, e:R> & 9.25654e-05 \\ \hline 
+    <v: 5, e:0> & 0.000474695 \\ \hline 
+    <v: 1, e:R> & 0.000488066 \\ \hline 
+    <v: 1, e:L> & 0.000488066 \\ \hline 
+    <v: 4, e:0> & 0.000752723 \\ \hline 
+    <v: 7, e:0> & 0.000966682 \\ \hline 
+    <v: 6, e:L> & 0.00124139 \\ \hline 
+    <v: 6, e:R> & 0.00124139 \\ \hline 
+    <v: 3, e:R> & 0.00124139\\ \hline 
+    <v: 3, e:L> & 0.00124139 \\ \hline 
+    <v: 10, e:0> & 0.00331747 \\ \hline 
+    <v: 1, e:0> & 0.00351748 \\ \hline 
+    <v: 9, e:0> & 0.0115936 \\ \hline 
+    <v: 3, e:0> & 0.0190311 \\ \hline 
+    <v: 2, e:0> & 0.0746053 \\ \hline 
+    <v: 0, e:0> & 0.0818527 \\ \hline 
+    <v: 11, e:0> & 0.797647 \\ \hline 
+\end{tabular}
+\end{center}
+\caption{Top state probabilities}
+\end{table}
+\end{center}
+
+
 
         %*MCMC
         %    *convergence analysis
